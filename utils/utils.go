@@ -57,10 +57,8 @@ func InitEnv(confPath string) *RechoServer {
 	// 初始化 Recho Server
 	// 映射路由与处理器
 	route2Handler, handler2Routes := mapRouteAndHandlers(conf)
-	pr(route2Handler, handler2Routes)
-
+	// 映射路由与验证器
 	validateRoutes, route2Validators, handler2Validator := mapRouteAndValidators(conf)
-	pr(validateRoutes, route2Validators, handler2Validator)
 
 	return &RechoServer{
 		echo.New(),
