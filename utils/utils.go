@@ -30,11 +30,11 @@ type validator struct {
 // 封装后的 Echo Server
 type RechoServer struct {
 	server            *echo.Echo
-	route2Handler     map[string]*handler   // 一条路由 对 一个处理器
-	route2Validators  map[string]*validator // 一条路由 对 多个验证器
-	handler2Routes    map[string][]string   // 一个处理器 对 多条路由
-	handler2Validator map[string]*validator // 一个处理器 对 多个验证器
-	validateRoutes    []string              // 需要做验证的路由
+	route2Handler     map[string]*handler     // 一条路由 对 一个处理器
+	route2Validators  map[string][]*validator // 一条路由 对 多个验证器
+	handler2Routes    map[string][]string     // 一个处理器 对 多条路由
+	handler2Validator map[string]*validator   // 一个处理器 对 多个验证器
+	validateRoutes    []string                // 需要做验证的路由
 }
 
 // toml 路由配置项
@@ -46,7 +46,7 @@ type Conf struct {
 //
 // 读取路由配置项，初始化环境
 //
-func InitEnv(confPath string) {
+func InitEnv(confPath string) *RechoServer {
 
 	// 读取配置项
 	data, err := ioutil.ReadFile(confPath)
@@ -61,6 +61,15 @@ func InitEnv(confPath string) {
 
 	validateRoutes, route2Validators, handler2Validator := mapRouteAndValidators(conf)
 	pr(validateRoutes, route2Validators, handler2Validator)
+
+	return &RechoServer{
+		echo.New(),
+		route2Handler,
+		route2Validators,
+		handler2Routes,
+		handler2Validator,
+		validateRoutes,
+	}
 }
 
 //
