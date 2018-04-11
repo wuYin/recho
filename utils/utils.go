@@ -34,6 +34,7 @@ type RechoServer struct {
 	route2Validators  map[string]*validator // 一条路由 对 多个验证器
 	handler2Routes    map[string][]string   // 一个处理器 对 多条路由
 	handler2Validator map[string]*validator // 一个处理器 对 多个验证器
+	validateRoutes    []string              // 需要做验证的路由
 }
 
 // toml 路由配置项
@@ -57,6 +58,9 @@ func InitEnv(confPath string) {
 	// 映射路由与处理器
 	route2Handler, handler2Routes := mapRouteAndHandlers(conf)
 	pr(route2Handler, handler2Routes)
+
+	validateRoutes, route2Validators, handler2Validator := mapRouteAndValidators(conf)
+	pr(validateRoutes, route2Validators, handler2Validator)
 }
 
 //
@@ -89,6 +93,47 @@ func mapRouteAndHandlers(conf Conf) (route2Handler map[string]*handler, handler2
 	}
 
 	return
+}
+
+//
+// 映射路由与处理器
+//
+func mapRouteAndValidators(conf Conf) ([]string, map[string][]*validator, map[string]*validator) {
+	validateRoutes := make([]string, 0, len(conf.Validators))
+	route2Validators := make(map[string][]*validator, 1)
+	handler2Validator := make(map[string]*validator, 1)
+	// 遍历验证器组
+	for route, handlers := range conf.Validators {
+		// 建立 route 与 validators 的一对多关系
+		validators, ok := route2Validators[route]
+		if !ok {
+			validators = make([]*validator, 0, len(handlers))
+			validateRoutes = append(validateRoutes, route)
+		}
+
+		// 建立 handler 与 validator 一对一的关系
+		for _, h := range handlers {
+			realH := strings.TrimPrefix(h, "!")
+			v, ok := handler2Validator[realH]
+			if !ok {
+				v = &validator{
+					handleName: realH,
+					skipRoutes: make(map[string]*interface{}, 1),
+				}
+				handler2Validator[h] = v
+			}
+
+			if strings.HasPrefix(h, "!") {
+				v.skipRoutes[route] = nil // ! 开头的验证器忽略
+			}
+
+			validators = append(validators, v)
+		}
+
+		route2Validators[route] = validators
+	}
+	sort.Strings(validateRoutes)
+	return validateRoutes, route2Validators, handler2Validator
 }
 
 //
