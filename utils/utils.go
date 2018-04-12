@@ -208,7 +208,7 @@ func (s *RechoServer) Start(port string) error {
 					for _, v := range vs {
 						for skipPrefix := range v.skipRoutes {
 							if strings.HasPrefix(r, skipPrefix) {
-								log.Printf("[INFO]: Route Skipped Vlidator: %s -/-> %s", r, v.handleName)
+								log.Printf("[INFO]: Vlidator Skipped: %s -/-> %s", r, v.handleName)
 								continue FLAG
 							}
 						}
