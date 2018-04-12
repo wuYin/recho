@@ -164,6 +164,80 @@ func (s *RechoServer) RegisterValidator(vPath interface{}) *RechoServer {
 }
 
 //
+// 启动 RechoServer
+//
+func (s *RechoServer) Start(port string) error {
+	// 检查所有验证函数是否都注入
+	for r, vs := range s.route2Validators {
+		for _, v := range vs {
+			if nil == v.handleFunc {
+				log.Fatalf("[ERROR]: %s -> %s Is Not Injected", r, v.handleName)
+			}
+		}
+	}
+
+	// 取出所有路由
+	rs := make([]string, 0, 1)
+	for r := range s.route2Handler {
+		rs = append(rs, r)
+	}
+	sort.Strings(rs)
+
+	// 将处理函数注册到 echo.Server
+	for _, r := range rs {
+		h := s.route2Handler[r]
+		m := strings.ToUpper(h.httpMethod)
+		if h.handleFunc.Kind() == reflect.Invalid {
+			if m != "FILE" && m != "STATIC" {
+				log.Fatalf("[ERROR]: %s -> %s Is Not Injected", r, h.handleName)
+			}
+		}
+
+		handleFunc := func(ctx echo.Context) error {
+			context := reflect.ValueOf(ctx)
+			h.handleFunc.Call([]reflect.Value{context})
+			return nil
+		}
+
+		usedVs := make([]echo.MiddlewareFunc, 0, 1)
+		for _, prefix := range s.validateRoutes {
+			if strings.HasPrefix(r, prefix) {
+				vs, ok := s.route2Validators[r]
+				if ok {
+				FLAG:
+					for _, v := range vs {
+						for skipPrefix := range v.skipRoutes {
+							if strings.HasPrefix(r, skipPrefix) {
+								log.Printf("[INFO]: Route Skipped Vlidator: %s -/-> %s", r, v.handleName)
+								continue FLAG
+							}
+						}
+						usedVs = append(usedVs, v.handleFunc)
+					}
+				}
+			}
+		}
+
+		// 发布路由所需的处理器和验证器
+		switch m {
+		case http.MethodGet:
+			s.server.GET(r, handleFunc, usedVs...)
+		case http.MethodPost:
+			s.server.POST(r, handleFunc, usedVs...)
+		case http.MethodHead:
+			s.server.HEAD(r, handleFunc, usedVs...)
+		case "FILE":
+			s.server.File(r, h.handleName)
+		case "STATIC":
+			s.server.Static(r, h.handleName)
+		}
+	}
+
+	log.Fatalln(s.server.Start(port))
+	return nil
+}
+
+//
 // 映射路由与处理器
 //
 func mapRouteAndHandlers(conf Conf) (route2Handler map[string]*handler, handler2Routes map[string][]string) {
