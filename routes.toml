@@ -1,5 +1,5 @@
 [routes]
-"POST:/user"="handlers.User.GetUserInfo"
+"GET:/user"="handlers.User.GetUserInfo"
 
 [validators]
-"/user"=["validators.User.CheckSession"]
+"/user"=["validators.User.CheckSession", "!validators.User.UnusedChecker"]
