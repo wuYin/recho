@@ -2,4 +2,4 @@
 "POST:/user"="handlers.User.GetUserInfo"
 
 [validators]
-#"/user"=["main.CommonValidator.CheckSession"]
+"/user"=["validators.User.CheckSession"]
