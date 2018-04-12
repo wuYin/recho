@@ -71,6 +71,47 @@ func InitEnv(confPath string) *RechoServer {
 }
 
 //
+// 将处理器反射到包中的函数
+//
+func (s *RechoServer) RegisterHandler(handlerPath interface{}) *RechoServer {
+	rHVal := reflect.ValueOf(handlerPath)
+	rHType := rHVal.Elem().Type()
+	rHPath := rHType.String() // package.struct.HandlerFunc
+
+	// 要处理的所有路由
+	hs := make([]string, 0, 1)
+	for h := range s.handler2Routes {
+		hs = append(hs, h)
+	}
+	sort.Strings(hs)
+
+	used := false
+	// 遍历所有 handler 下的所有 route
+	for _, h := range hs {
+		routes := s.handler2Routes[h]
+		for _, route := range routes {
+			// handlerPath 函数要处理的路由
+			if strings.HasPrefix(h, rHPath) {
+				handleFuncName := strings.TrimPrefix(strings.TrimPrefix(h, rHPath), ".")
+				handleFunc := rHVal.MethodByName(handleFuncName)
+				if handleFunc.Kind() == reflect.Invalid || handleFunc.IsNil() {
+					log.Panicf("[ERROR]: HandleFunc %s Not Exist In %s", handleFuncName, rHPath)
+				}
+
+				s.route2Handler[route].handleFunc = handleFunc
+				used = true
+				log.Printf("[INFO]: Register Succeed: %s -> %s.%s", route, rHPath, handleFuncName)
+			}
+		}
+	}
+
+	if !used {
+		log.Printf("[WARN]: HandlerFunc Not Used: %s", rHPath)
+	}
+	return s
+}
+
+//
 // 映射路由与处理器
 //
 func mapRouteAndHandlers(conf Conf) (route2Handler map[string]*handler, handler2Routes map[string][]string) {
@@ -155,7 +196,7 @@ func checkErr(err error, info string) {
 //
 // 调试函数
 //
-func pr(vs ...interface{}) {
+func Pr(vs ...interface{}) {
 	for _, v := range vs {
 		fmt.Printf("%v\n", v)
 	}
