@@ -1,7 +1,14 @@
 package main
 
-import "recho/utils"
+import (
+	"recho/utils"
+	"recho/handlers"
+	"recho/validators"
+)
 
 func main() {
-	utils.InitEnv("./routes.toml")
+	s := utils.InitEnv("./routes.toml")
+	s.RegisterHandler(&handlers.User{})
+	s.RegisterValidator(&validators.User{})
+	//utils.Pr(s)
 }
