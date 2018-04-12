@@ -112,6 +112,58 @@ func (s *RechoServer) RegisterHandler(handlerPath interface{}) *RechoServer {
 }
 
 //
+// 将验证器反射到包中的函数
+//
+func (s *RechoServer) RegisterValidator(vPath interface{}) *RechoServer {
+	vValue := reflect.ValueOf(vPath)
+	vType := vValue.Elem().Type()
+	vName := vType.String()
+
+	// 所有待验证的路由
+	routes := make([]string, 0, 1)
+	for r := range s.route2Validators {
+		routes = append(routes, r)
+	}
+	sort.Strings(routes)
+
+	used := false
+	// 遍历处理所有需要验证的路由
+	for _, r := range routes {
+		// 一条路由对应多个验证器
+		vs := s.route2Validators[r]
+		for _, v := range vs {
+			// 注册的处理器处理当前路由
+			if strings.HasPrefix(v.handleName, vName) {
+				validateFuncName := strings.TrimPrefix(strings.TrimPrefix(v.handleName, vName), ".")
+				validateFunc := vValue.MethodByName(validateFuncName)
+
+				if validateFunc.Kind() == reflect.Invalid || validateFunc.IsNil() {
+					log.Panicf("[ERROR]: ValidateFunc %s Not Exist In %s", validateFuncName, vName)
+				} else {
+					// 检查类型
+					ok := validateFunc.Type().ConvertibleTo(reflect.TypeOf((func(echo.HandlerFunc) echo.HandlerFunc)(nil)))
+					if !ok {
+						log.Panicf("[ERROR]: ValidateFunc %s Not MiddlewareFunc", validateFuncName)
+					}
+
+					// 建立映射关系
+					v.handleFunc = validateFunc.Interface().(func(echo.HandlerFunc) echo.HandlerFunc)
+					used = true
+				}
+
+				log.Printf("[INFO]: Register Succeed: %s -> %s.%s", r, vName, validateFuncName)
+			}
+		}
+	}
+
+	if !used {
+		log.Printf("[WARN]: %s Not Used", vName)
+	}
+
+	return s
+}
+
+//
 // 映射路由与处理器
 //
 func mapRouteAndHandlers(conf Conf) (route2Handler map[string]*handler, handler2Routes map[string][]string) {
