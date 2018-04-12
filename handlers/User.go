@@ -9,5 +9,5 @@ type User struct {
 }
 
 func (u *User) GetUserInfo(ctx echo.Context) {
-	fmt.Println("Call handlers.User.GetUserInfo")
+	fmt.Println("调用 handlers.User.GetUserInfo :)")
 }
