@@ -10,5 +10,5 @@ func main() {
 	s := utils.InitEnv("./routes.toml")
 	s.RegisterHandler(&handlers.User{})
 	s.RegisterValidator(&validators.User{})
-	//utils.Pr(s)
+	s.Start(":2333")
 }
