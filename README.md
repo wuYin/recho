@@ -8,12 +8,11 @@ Recho 是一个封装 [Echo framework](https://github.com/labstack/echo) 路由�
 
 #### 下载依赖
 
+```
 go get github.com/labstack/echo
-
 go get github.com/naoina/toml
-
 go get github.com/wuYin/recho
-
+```
 
 
 #### 创建路由文件 `routes.toml`
@@ -71,13 +70,13 @@ go run main.go
 ➜  recho git:(master) tree -L 2
 .
 ├── handlers
-│   └── User.go		# 业务处理
+│   └── User.go 	# 业务处理
 ├── validators
-│   └── User.go		# 验证处理
+│   └── User.go 	# 验证处理
 ├── utils
 │   └── utils.go    # 封装细节	
-├── main.go			# 服务运行文件
-└── routes.toml		# 路由与中间件配置文件
+├── main.go 		# 服务运行文件
+└── routes.toml 	# 路由与中间件配置文件
 ```
 
 
