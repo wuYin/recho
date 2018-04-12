@@ -48,13 +48,11 @@ func main() {
 
 
 
-#### 运行：
+#### 运行后请求： [127.0.0.1:2333/user](http://127.0.0.1:2333/user)
 
 ```
 go run main.go
 ```
-
-请求：[127.0.0.1:2333/user](http://127.0.0.1:2333/user)
 
 
 
@@ -74,7 +72,7 @@ go run main.go
 ├── validators
 │   └── User.go 	# 验证处理
 ├── utils
-│   └── utils.go    # 封装细节	
+│   └── utils.go 	# 封装细节	
 ├── main.go 		# 服务运行文件
 └── routes.toml 	# 路由与中间件配置文件
 ```
