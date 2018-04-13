@@ -2,4 +2,5 @@
 "GET:/user"="handlers.User.GetUserInfo"
 
 [validators]
+"/"=["validators.RespMiddleware.Process"]
 "/user"=["validators.User.CheckSession", "!validators.User.UnusedChecker"]
