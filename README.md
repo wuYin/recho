@@ -22,7 +22,8 @@ go get github.com/wuYin/recho
 "GET:/user"="handlers.User.GetUserInfo"
 
 [validators]
-"/user"=["validators.User.CheckSession", "!validators.User.UnusedChecker"]
+"/"=["validators.RespMiddleware.Process"]
+"/user"=["validators.User.CheckSession", "!validators.User.UnusedChecker"]	# !开头的会跳过
 ```
 
 
@@ -33,15 +34,16 @@ go get github.com/wuYin/recho
 package main
 
 import (
-	"recho/handlers"
 	"recho/utils"
+	"recho/handlers"
 	"recho/validators"
 )
 
 func main() {
 	s := utils.InitEnv("./routes.toml")
-	s.RegisterHandler(&handlers.User{})
-	s.RegisterValidator(&validators.User{})
+	s.RegisterHandler(&handlers.User{})               // 业务逻辑处理器
+	s.RegisterValidator(&validators.User{})           // 业务逻辑验证中间件
+	s.RegisterValidator(&validators.RespMiddleware{}) // 响应中间件
 	s.Start(":2333")
 }
 ```
@@ -56,11 +58,24 @@ go run main.go
 
 
 
-#### 调用成功
+#### 服务端处理请求：
 
 ![](http://p2j5s8fmr.bkt.clouddn.com/new-recho-run.png)
 
  
+
+#### 客户端接收响应：
+
+ ![](http://p2j5s8fmr.bkt.clouddn.com/resp_succ2.png)
+
+
+
+## Features
+
+- [x] 封装路由与中间件到一个配置文件
+- [x] 封装常用的 HTTP 响应函数
+
+
 
 ## Structures
 
@@ -68,20 +83,14 @@ go run main.go
 ➜  recho git:(master) tree -L 2
 .
 ├── handlers
-│   └── User.go 	# 业务处理
+│   └── User.go 	# User 业务处理
 ├── validators
-│   └── User.go 	# 验证处理
+│   ├── Resp.go 	# 响应中间件
+│   └── User.go 	# User 业务验证
 ├── utils
-│   └── utils.go 	# 封装细节	
-├── main.go 		# 服务运行文件
+│   ├── codes.go	# 状态码与状态信息
+│   ├── http.go		# 封装 HTTP 响应函数	
+│   └── utils.go    # 封装配置文件
+├── main.go
 └── routes.toml 	# 路由与中间件配置文件
 ```
-
-
-
-
-
-## TODO
-
-- [x] 封装路由与中间件到一个配置文件
-- [ ] 封装常用的 HTTP 响应函数
