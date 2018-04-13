@@ -24,7 +24,7 @@ type validator struct {
 	routePrefix string                  // 验证的路由前缀
 	handleName  string                  // 处理验证的函数
 	skipRoutes  map[string]*interface{} // 无需验证的路由
-	handleFunc  echo.MiddlewareFunc     //处理验证的函数
+	handleFunc  echo.MiddlewareFunc     // 处理验证的函数
 }
 
 // 封装后的 Echo Server
@@ -202,7 +202,7 @@ func (s *RechoServer) Start(port string) error {
 		usedVs := make([]echo.MiddlewareFunc, 0, 1)
 		for _, prefix := range s.validateRoutes {
 			if strings.HasPrefix(r, prefix) {
-				vs, ok := s.route2Validators[r]
+				vs, ok := s.route2Validators[prefix]
 				if ok {
 				FLAG:
 					for _, v := range vs {
