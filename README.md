@@ -89,8 +89,8 @@ go run main.go
 │   └── User.go 	# User 业务验证
 ├── utils
 │   ├── codes.go	# 状态码与状态信息
-│   ├── http.go		# 封装 HTTP 响应函数	
-│   └── utils.go    # 封装配置文件
+│   ├── http.go 	# 封装 HTTP 响应函数	
+│   └── utils.go	# 封装配置文件
 ├── main.go
 └── routes.toml 	# 路由与中间件配置文件
 ```
