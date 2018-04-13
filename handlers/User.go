@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/labstack/echo"
-	"fmt"
 	"recho/utils"
+	"fmt"
 )
 
 type User struct {
@@ -12,7 +12,19 @@ type User struct {
 }
 
 func (u *User) GetUserInfo(ctx echo.Context) {
+	// 一般开发 API 的三个步骤
+	// 1. 检查请求参数
+	// 2. 处理业务逻辑
+	// 3. 发送响应
+
+	// 参数检查
+	//utils.SendParamsInvalid(ctx, nil)	// 若参数验证失败
+
+	// 业务处理
+	//utils.SendServerError(ctx, nil) // 若服务器处理出错
+
 	fmt.Println("调用 handlers.User.GetUserInfo :)")
 	pike := User{"Robert C. Pike", 62}
+	// 发送响应
 	utils.SendServerSucc(ctx, pike)
 }
